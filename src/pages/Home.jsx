@@ -11,6 +11,8 @@ import Diversity1Icon from '@mui/icons-material/Diversity1';
 import Diversity3Icon from '@mui/icons-material/Diversity3';
 
 import { ProfileItem } from '../components/ProfileItem';
+import { useAuth } from '../utils/authentication';
+
 
 const MainButton = experimentalStyled(Button)(({theme}) => ({
   ...theme.typography.h4,
@@ -31,6 +33,8 @@ const SubButton = experimentalStyled(Button)(({theme}) => ({
 
 
 export const Home = () => {
+  const { state: {user} } = useAuth();
+  
   return (
       <Paper sx={{mt: 18, p: 2, maxWidth: 500, mx: 'auto'}}>
         <Box sx={{mt: -10, display: 'flex', alignItems: 'center', flexDirection: 'column'}}>
@@ -38,7 +42,7 @@ export const Home = () => {
             <Avatar sx={{ width: 128, height: 128, outline: '8px solid', outlineColor: theme => theme.palette.background.default }}/>
           </Box>
           <Box sx={{mt: 2}}>
-            <Typography variant="h2">ユーザー名</Typography>
+            <Typography variant="h2">{user.username}</Typography>
           </Box>
           <Box sx={{display: 'flex', gap: '8px',mt: 1}}>
             <ProfileItem value={"0人"}>

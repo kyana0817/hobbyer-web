@@ -10,7 +10,7 @@ export const Wave = ({mt ,children}) => {
         zIndex: -10,
         bottom: '0',
         left: '0',
-        width: '100vw',
+        width: '100%',
         height: 'calc(calc(100% - 100vh) + 200px)',
         color: theme => theme.palette.primary.main,
         background: theme => theme.palette.primary.main

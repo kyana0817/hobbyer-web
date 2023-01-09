@@ -47,6 +47,9 @@ export default createTheme({
   components: {
     MuiCssBaseline: {
       styleOverrides: {
+        body: {
+          position: 'relative'
+        },
         button: {
           cursor: 'pointer',
         }

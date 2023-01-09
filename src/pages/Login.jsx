@@ -10,8 +10,10 @@ import {
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
+import { login } from '../lib/auth'
 import { useAuth } from '../utils/authentication';
 import img from '../assets/images/login.jpg';
+import { currentUser } from '../features/auth';
 
 
 export const Login = () => {
@@ -34,7 +36,9 @@ export const Login = () => {
 
   const handleSubmit = async () => {
     try {
-      await dispatch({type: 'user.login', user: form})
+      await login(form.email, form.password);
+      const user = await currentUser();
+      dispatch({type: 'login', user});
       navigation('/')
     } catch(e) {
       console.error(e)

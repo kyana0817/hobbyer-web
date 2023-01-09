@@ -11,7 +11,7 @@ import { ReactComponent as WaveSvg } from '../assets/images/wave2.svg'
 
 const StyledWave = styled(WaveSvg)(() => ({
   height: 196,
-  width: '100vw'
+  width: '100%'
 }))
 
 

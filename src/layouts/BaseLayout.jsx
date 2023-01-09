@@ -10,23 +10,14 @@ import { Footer } from './Footer'
 import { Wave } from './Wave'
 import { ReactComponent as WaveSvg } from '../assets/images/wave1.svg'
 
-import { useAuthorization } from '../utils/authentication'
-import { useEffect } from 'react'
+import { Authoraization } from '../utils/authentication'
 
 const StyledWave = styled(WaveSvg)(() => ({
   height: 196,
-  width: '100vw'
+  width: '100%'
 }))
 
 export const BaseLayout = () => {
-  const {logged} = useAuthorization()
-  const navigation = useNavigate()
-  
-  useEffect(() => {
-    if (!logged) {
-      navigation('/auth')
-    }
-  }, [])
 
   return (
     <>
@@ -39,7 +30,9 @@ export const BaseLayout = () => {
         }}
       >
         <Container sx={{pt: '60px', flex: 1}}>
-          <Outlet/>
+          <Authoraization>
+            <Outlet/>
+          </Authoraization>
         </Container>
         <Footer/>
       </Box>

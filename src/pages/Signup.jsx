@@ -10,6 +10,8 @@ import {
 import { Link, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 
+import { signup, refreshToken } from '../lib/auth'
+import { register } from '../features/auth'
 import { useAuth } from '../utils/authentication'
 import img from '../assets/images/signup.jpg'
 
@@ -17,6 +19,7 @@ import img from '../assets/images/signup.jpg'
 export const Signup = () => {
   const { dispatch } = useAuth()
   const navigate = useNavigate()
+  const [ loading, setLoading ] = useState(false)
   const [ form, setForm ] = useState({
     username: '',
     email: '',
@@ -35,12 +38,20 @@ export const Signup = () => {
   }
 
   const handleSubmit = async () => {
+    setLoading(true)
     try {
-      await dispatch({type: 'user.signup', user: form})
+      await signup(form.email, form.password);
+      const user = await register(form);
+      await refreshToken();
+      
+      dispatch({type: 'login', user});
       navigate('/')
     } catch (e) {
       console.error(e)
+    } finally {
+      setLoading(false)
     }
+
   }
 
   return (
@@ -176,6 +187,7 @@ export const Signup = () => {
             variant="contained"
             fullWidth
             onClick={handleSubmit}
+            disabled={loading}
           >
             サインアップ
           </Button>

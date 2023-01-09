@@ -1,82 +1,108 @@
-import { createContext, useContext, useReducer, useMemo } from 'react';
+import { useContext, useReducer, createContext, useEffect } from 'react';
+import { Navigate } from 'react-router-dom';
+import * as auth from '../lib/auth';
+import * as api from '../features/auth';
 
-import { handleLogin, handleSignup } from "../lib/firebase";
-
-
+// 認証状態を管理するためのコンテキストを作成
 const AuthenticationContext = createContext(undefined);
 
+// コンテキストの初期状態
 const initialState = {
-  logged: false
-};
+  logged: undefined,
+  user: undefined
+}
 
+// コンテキストの更新ルール
 const reducer = (state, action) => {
-  switch(action.type) {
+  switch (action.type) {
     case 'logout':
       return {
         ...state,
         logged: false
-      };
+      }
     case 'login':
       return {
         ...state,
-        logged: true
-      };
-    default:
-      return state
-  }
-};
-
-const dispatchMiddleware = dispatch => async action => {
-  console.log(action)
-  switch (action.type) {
-    case 'user.login':
-      try {
-        await handleLogin(action.user);
-        dispatch({type: 'login'});
-      } catch (e) {
-        dispatch({type: 'logout'});
-        throw e;
+        logged: true,
+        user: action.user
       }
-      break;
-    case 'user.signup':
-      try {
-        await handleSignup(action.user);
-        dispatch({type: 'login'});
-      } catch (e) {
-        dispatch({type: 'logout'});
-        throw e;
+    case 'user.update':
+      return {
+        ...state,
+        user: action.user
       }
-      break;
     default:
-      dispatch(action)
+      throw new Error('reducer undefined action type')
   }
 }
 
-
+// コンテキストのを他のコンポーネントに提供するためのプロパイダーを定義
 export const AuthenticationProvider = ({children}) => {
-  const [state, dispatchBase] = useReducer(reducer, initialState);
-  const dispatch = dispatchMiddleware(dispatchBase)
+  const [state, dispatch] = useReducer(reducer, initialState);
 
-  const value = useMemo(() => ({
-      state,
-      dispatch
-    }),
-    [state, dispatch]
-  );
+  // 初期レンダリング時にクライアントが保持しているデータを元に認証情報を取得する
+  useEffect(() => {
+    (async () => {
+      const user = await auth.currentUser();
+      if (user) {
+        const res = await api.currentUser();
+        
+        // 認証情報があれば、ログイン状態にする
+        dispatch({type: 'login', user: res})
+      } else {
+        // 認証情報がなければ、未ログイン状態にする
+        dispatch({type: 'logout'})
+      }
+    })();
+  }, [])
 
   return (
-    <AuthenticationContext.Provider value={value}>
+    <AuthenticationContext.Provider value={{state, dispatch}}>
       {children}
     </AuthenticationContext.Provider>
   )
 }
 
+// 認証用のフックを定義
 export const useAuth = () => {
-  const context = useContext(AuthenticationContext)
+  const context = useContext(AuthenticationContext);
   return context
 }
 
+// 認可用のフックを定義
 export const useAuthorization = () => {
-  const { state } = useAuth()
-  return {logged: state.logged}
+  const { state } = useAuth();
+
+  return {logged: state.logged, loading: state.logged === undefined};
+}
+
+
+// ログイン確認を行うコンポーネント
+const ForbiddenComponent = () => {
+  const { logged, loading } = useAuthorization();
+
+  return (
+    <>
+      {
+        loading
+          ? <p>loading......</p>
+          : !logged && <Navigate to="/auth"/>
+      }
+    </>
+  )
+}
+
+// ユーザー認証が必要なコンポーネントをラップするコンポーネント
+// ラップされた子コンポーネントは、ログイン状態でないとレンダリングされなくなる
+export const Authoraization = ({children}) => {
+  const { logged } = useAuthorization();
+  return (
+    <>
+      {
+        logged
+        ? children
+        : <ForbiddenComponent />
+      }
+    </>
+  )
 }
